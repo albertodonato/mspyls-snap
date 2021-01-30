@@ -1,0 +1,38 @@
+name: mspyls
+summary: Microsoft Language Server for Python
+description: |
+  Microsoft Python Language Server implements the Language Server Protocol.
+
+  See https://github.com/Microsoft/python-language-server for more details.
+license: Apache-2.0
+adopt-info: mspyls
+grade: stable
+confinement: strict
+base: core18
+
+apps:
+  mspyls:
+    command: mspyls/Microsoft.Python.LanguageServer
+    plugs:
+      - home
+      - network-bind
+
+parts:
+  mspyls:
+    plugin: dotnet
+    source: https://github.com/microsoft/python-language-server
+    source-type: git
+    dotnet-version: 5.0
+    dotnet-runtime-version: 5.0.2
+    stage-packages:
+      - libicu60
+    override-build: |
+      set -e
+      snapcraftctl set-version "$(git describe --tags)"
+
+      cd src/LanguageServer/Impl
+      dotnet build -c Release
+      dotnet publish -c Release --self-contained -r linux-x64 -o "$SNAPCRAFT_PART_INSTALL/mspyls"
+    stage:
+      - mspyls
+      - usr/lib/*/libicu*
